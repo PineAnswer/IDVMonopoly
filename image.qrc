@@ -1,0 +1,31 @@
+<RCC>
+    <qresource prefix="/role">
+        <file>resourse/image/novelist.png</file>
+        <file>resourse/image/kunchong.png</file>
+        <file>resourse/image/explorer.png</file>
+        <file>resourse/image/journalist.png</file>
+        <file>resourse/image/journalistKaTong.png</file>
+        <file>resourse/image/finalCell.png</file>
+        <file>resourse/image/door.png</file>
+        <file>resourse/image/Decline.png</file>
+        <file>resourse/image/DontMove.png</file>
+        <file>resourse/image/Flash.png</file>
+        <file>resourse/image/None.png</file>
+        <file>resourse/image/PosExchange.png</file>
+        <file>resourse/image/StillMe.png</file>
+        <file>resourse/image/explorerKatong.png</file>
+        <file>resourse/image/kunchongKatong.png</file>
+        <file>resourse/image/NovelistKatong.png</file>
+    </qresource>
+    <qresource prefix="/new/prefix1"/>
+    <qresource prefix="/background"/>
+    <qresource prefix="/">
+        <file>resourse/image/backgroundImageChooseRole.png</file>
+        <file>resourse/image/qipanbackground.png</file>
+        <file>resourse/image/kuangshi.png</file>
+        <file>resourse/image/startpoint.png</file>
+        <file>resourse/image/CardCell.png</file>
+        <file>resourse/image/dice.png</file>
+    </qresource>
+    <qresource prefix="/roleImage"/>
+</RCC>
