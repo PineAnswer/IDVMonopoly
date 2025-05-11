@@ -6,8 +6,13 @@
 #include <QLabel>
 #include <QPushButton>
 #include "gamecell.h"
+#include <QTimer>
 #include "statistics.h"
 #include <QGridLayout>
+#include <QSoundEffect>
+
+
+
 namespace Ui {class PlayGame;}
 
 
@@ -39,6 +44,7 @@ public:
     QGridLayout cardBar[3];
     QPushButton cardButton[3][4];
 
+    QSoundEffect *bgMusic;
 
     void forward(int steps, PlayRole &role);
     void forward2(int steps, PlayRole &role);
@@ -52,6 +58,7 @@ public:
     void triggerCellEffect(int cellIndex, int playerIndex);
     void on_go_clicked();
     void wait(int time);
+    void updateFrame(PlayRole &role);
 };
 
 

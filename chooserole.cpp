@@ -1,6 +1,7 @@
 #include "chooserole.h"
 #include <QPainter>
 #include <QDebug>
+#include <QSoundEffect>
 
 ChooseRole::ChooseRole(QWidget *parent) : QWidget(parent) {
     //设置背景图片路径
@@ -9,6 +10,7 @@ ChooseRole::ChooseRole(QWidget *parent) : QWidget(parent) {
     if (!backgroundPixmap.isNull()) {
         this->setFixedSize(backgroundPixmap.size());
     }
+
     initializeUI();
     loadImages();
     statistic = new Statistics;
@@ -131,9 +133,11 @@ void ChooseRole::onCharacterImageClicked(QPushButton *button) {
 
     // 设置玩家图片按钮的图标
     playerImageButtons[currentSelectedPlayer]->setIcon(selectedPixmap);
+    playerImageButtons[currentSelectedPlayer]->setIconSize(playerImageButtons[currentSelectedPlayer]->size());
 }
 
 void ChooseRole::onGoToManorButtonClicked() {
+    bgMusic->stop();
     playgame= new PlayGame(nullptr,statistic);
     this->hide();
     playgame->show();

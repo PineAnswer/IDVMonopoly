@@ -12,6 +12,7 @@
 
 PlayGame::PlayGame(QWidget *parent,Statistics* sta0): QWidget(parent)
 {
+
     //设置界面基本格式
     {
     this->setFixedSize(1200,800);
@@ -102,31 +103,55 @@ PlayGame::PlayGame(QWidget *parent,Statistics* sta0): QWidget(parent)
     loadSkillImage();
 
     //人物状态初始化
-    {
-    for(int i=0;i<3;i++){
-        sta->role[i].playerlabel.setParent(this);
+
+    for(int j=0;j<3;j++){
+            switch(sta->role[j].identity.role){
+            case Identity::novelist:
+                for(int i=1;i<=5;i++){
+                    sta->role[j].walkImage.append(QPixmap(QString(":/NovelistWalk/resourse/NovelistWalk/NovelistWalk"+QString::number(i)+".png")));
+                }
+                break;
+            case Identity::explorer:
+                for(int i=1;i<=5;i++){
+                    sta->role[j].walkImage.append(QPixmap(QString(":/ExplorerWalk/resourse/ExplorerWalk/ExplorerWalk"+QString::number(i)+".png")));
+                }
+                break;
+            case Identity::entomologist:
+                for(int i=1;i<=5;i++){
+                    sta->role[j].walkImage.append(QPixmap(QString(":/KunchongWalk/resourse/KunchongWalk/KunchongWalk"+QString::number(i)+".png")));
+                }
+                break;
+            case Identity::journalist:
+                for(int i=1;i<=5;i++){
+                    sta->role[j].walkImage.append(QPixmap(QString(":/JournalistWalk/resourse/JournalistWalk/JournalistWalk"+QString::number(i)+".png")));
+                }
+                break;
+            }
+        sta->role[j].playerlabel.setParent(this);
+        sta->role[j].playerlabel.setFixedSize(80,120);
+        sta->role[j].walkLabel.setParent(this);
+        sta->role[j].walkLabel.setScaledContents(true);
+        sta->role[j].walkLabel.setFixedSize(80,120);
     }
+
     sta->role[0].Point=19;
     sta->role[0].playerlabel.move(m_gameCells[19].position);
     sta->role[0].playerlabel.setScaledContents(true);
-    sta->role[0].playerlabel.setFixedSize(50,90);
-    sta->role[0].playerlabel.setPixmap(sta->role[0].identity.KaTongPath);
+    sta->role[0].playerlabel.setPixmap(sta->role[0].walkImage[0]);
     sta->role[0].playerlabel.show();
 
     sta->role[1].Point=5;
     sta->role[1].playerlabel.move(m_gameCells[5].position);
     sta->role[1].playerlabel.setScaledContents(true);
-    sta->role[1].playerlabel.setFixedSize(50,90);
-    sta->role[1].playerlabel.setPixmap(sta->role[1].identity.KaTongPath);
+    sta->role[1].playerlabel.setPixmap(sta->role[1].walkImage[0]);
     sta->role[1].playerlabel.show();
 
     sta->role[2].Point=12;
     sta->role[2].playerlabel.move(m_gameCells[12].position);
     sta->role[2].playerlabel.setScaledContents(true);
-    sta->role[2].playerlabel.setFixedSize(50,90);
-    sta->role[2].playerlabel.setPixmap(sta->role[2].identity.KaTongPath);
+    sta->role[2].playerlabel.setPixmap(sta->role[2].walkImage[0]);
     sta->role[2].playerlabel.show();
-    }
+
 
     //技能释放对象按钮
     for (int k = 0; k < 3; ++k) {
@@ -137,6 +162,12 @@ PlayGame::PlayGame(QWidget *parent,Statistics* sta0): QWidget(parent)
             applySkillToTarget(targetPlayer, sta->currentSkillType);
         });
     }
+    //设置背景音乐
+    bgMusic = new QSoundEffect(this);
+    bgMusic->setSource(QUrl::fromLocalFile(":/resourse/music/playgameBGmusic.wav"));
+    bgMusic->setLoopCount(QSoundEffect::Infinite); // 无限循环
+    bgMusic->setVolume(0.5f); // 音量范围 0.0-1.0
+    bgMusic->play();
 
     //链接槽函数
     connect(&go, &QPushButton::clicked, this, &PlayGame::on_go_clicked);
@@ -325,7 +356,6 @@ void PlayGame::on_go_clicked(){
             noticeBoard.setText(notice);
             wait(1000);
             this->forward(steps,this->sta->role[2]);
-
             sta->role[2].score += m_gameCells[sta->role[2].Point].Num;
             if(sta->round%2==0)
                 getSkill(sta->role[2]);
@@ -350,12 +380,27 @@ void PlayGame::on_go_clicked(){
     }
 }
 
+void PlayGame::updateFrame(PlayRole &role){
+    static int currentFrame=0;
+    currentFrame = (currentFrame + 1) % 5;
+    role.walkLabel.setPixmap(role.walkImage[currentFrame]);
+}
+
 void PlayGame::forward(int steps, PlayRole &role){
-    //前进动画部分
+    role.playerlabel.hide();
+    role.walkLabel.move(m_gameCells[role.Point].position);
+    role.walkLabel.show();
+
+    QTimer *timer=new QTimer(this);
+    connect(timer, &QTimer::timeout, this, [this, &role]() {
+        this->updateFrame(role);
+    });
+    timer->start(16);
+
     QSequentialAnimationGroup *group = new QSequentialAnimationGroup(this);
     for(int i=0;i<steps;i++){
-        QPropertyAnimation* anim = new QPropertyAnimation(&role.playerlabel, "pos");
-        anim->setDuration(300);
+        QPropertyAnimation* anim = new QPropertyAnimation(&role.walkLabel, "pos");
+        anim->setDuration(500);
         anim->setStartValue(m_gameCells[role.Point].position);
         role.Point = (role.Point + 1) % 21;
         anim->setEndValue(m_gameCells[role.Point].position);
@@ -367,6 +412,14 @@ void PlayGame::forward(int steps, PlayRole &role){
         }
     }
     group->start(QAbstractAnimation::DeleteWhenStopped);
+    connect(group, &QSequentialAnimationGroup::finished, this, [this, &role, timer]() {
+            timer->stop();
+            timer->deleteLater();
+
+            role.walkLabel.hide();
+            role.playerlabel.move(m_gameCells[role.Point].position);
+            role.playerlabel.show();
+    });
     if(m_gameCells[role.Point].property==CellProperty::Start&&role.score>=100){
         role.playerlabel.move(finalCells[0].position);
         role.isFinal=1;
@@ -630,6 +683,8 @@ void PlayGame::wait(int time){
     QTimer::singleShot(time, &loop, &QEventLoop::quit);
     loop.exec();
 }
+
+
 
 PlayGame::~PlayGame(){
 

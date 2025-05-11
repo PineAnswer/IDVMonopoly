@@ -17,8 +17,6 @@
         <file>resourse/image/kunchongKatong.png</file>
         <file>resourse/image/NovelistKatong.png</file>
     </qresource>
-    <qresource prefix="/new/prefix1"/>
-    <qresource prefix="/background"/>
     <qresource prefix="/">
         <file>resourse/image/backgroundImageChooseRole.png</file>
         <file>resourse/image/qipanbackground.png</file>
@@ -26,6 +24,35 @@
         <file>resourse/image/startpoint.png</file>
         <file>resourse/image/CardCell.png</file>
         <file>resourse/image/dice.png</file>
+        <file>resourse/image/mainsceneBG.jpg</file>
     </qresource>
-    <qresource prefix="/roleImage"/>
+    <qresource prefix="/music"/>
+    <qresource prefix="/NovelistWalk">
+        <file>resourse/NovelistWalk/NovelistWalk1.png</file>
+        <file>resourse/NovelistWalk/NovelistWalk2.png</file>
+        <file>resourse/NovelistWalk/NovelistWalk3.png</file>
+        <file>resourse/NovelistWalk/NovelistWalk4.png</file>
+        <file>resourse/NovelistWalk/NovelistWalk5.png</file>
+    </qresource>
+    <qresource prefix="/JournalistWalk">
+        <file>resourse/JournalistWalk/JournalistWalk1.png</file>
+        <file>resourse/JournalistWalk/JournalistWalk2.png</file>
+        <file>resourse/JournalistWalk/JournalistWalk3.png</file>
+        <file>resourse/JournalistWalk/JournalistWalk4.png</file>
+        <file>resourse/JournalistWalk/JournalistWalk5.png</file>
+    </qresource>
+    <qresource prefix="/KunchongWalk">
+        <file>resourse/KunchongWalk/KunchongWalk1.png</file>
+        <file>resourse/KunchongWalk/KunchongWalk2.png</file>
+        <file>resourse/KunchongWalk/KunchongWalk3.png</file>
+        <file>resourse/KunchongWalk/KunchongWalk4.png</file>
+        <file>resourse/KunchongWalk/KunchongWalk5.png</file>
+    </qresource>
+    <qresource prefix="/ExplorerWalk">
+        <file>resourse/ExplorerWalk/ExplorerWalk1.png</file>
+        <file>resourse/ExplorerWalk/ExplorerWalk2.png</file>
+        <file>resourse/ExplorerWalk/ExplorerWalk3.png</file>
+        <file>resourse/ExplorerWalk/ExplorerWalk4.png</file>
+        <file>resourse/ExplorerWalk/ExplorerWalk5.png</file>
+    </qresource>
 </RCC>

@@ -10,6 +10,7 @@
 #include <QPainter>
 #include "playgame.h"
 #include "statistics.h"
+#include <QSoundEffect>
 
 class ChooseRole : public QWidget {
     Q_OBJECT
@@ -18,7 +19,7 @@ public:
     explicit ChooseRole(QWidget *parent = nullptr);
     Statistics* statistic;
     PlayGame* playgame;
-
+    QSoundEffect *bgMusic;
 protected:
     //void paintEvent(QPaintEvent *event) override;
 
@@ -38,6 +39,8 @@ private:
     QVBoxLayout *mainLayout;
     QGridLayout *topLayout;
     QHBoxLayout *characterLayout;
+
+
 
     int currentSelectedPlayer = -1;
     const QString highlightStyle = "border: 3px solid red; border-radius: 5px;";

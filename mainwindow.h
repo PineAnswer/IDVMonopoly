@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "chooserole.h"
 #include <playgame.h>
+#include <QSoundEffect>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -21,9 +22,12 @@ public:
     ChooseRole* chooserole;
 
 private slots:
-    void on_GameStart_clicked();
+    void paintEvent(QPaintEvent *event);
+
 
 private:
     Ui::MainWindow *ui;
+    void mousePressEvent(QMouseEvent *event);
+    QSoundEffect *bgMusic;
 };
 #endif // MAINWINDOW_H

@@ -19,6 +19,8 @@ public:
     int Point;//Point的值就是相应的m_gameCell的数组的索引值，可取0——20
     int Point2=0;//finalCells数组的索引值,可取0——9
     QLabel playerlabel;
+    QLabel walkLabel;
+    QList<QPixmap> walkImage;
     bool isFinal=0;//是否进入决赛圈
     bool blocked=0;
     std::vector<Card> cards;//能力卡存储区

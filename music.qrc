@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/music1"/>
+    <qresource prefix="/">
+        <file>resourse/music/playgameBGmusic.wav</file>
+        <file>resourse/music/mainsceneBgMusic.wav</file>
+    </qresource>
+</RCC>
