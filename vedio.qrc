@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resourse/vedio/dice1.mp4</file>
+        <file>resourse/vedio/dice2.mp4</file>
+        <file>resourse/vedio/dice3.mp4</file>
+        <file>resourse/vedio/dice4.mp4</file>
+    </qresource>
+</RCC>

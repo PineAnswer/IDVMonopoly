@@ -6,6 +6,7 @@
 #include <playgame.h>
 #include <QSoundEffect>
 
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -20,14 +21,15 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     ChooseRole* chooserole;
+    QSoundEffect *bgMusic;
 
 private slots:
     void paintEvent(QPaintEvent *event);
 
-
 private:
     Ui::MainWindow *ui;
     void mousePressEvent(QMouseEvent *event);
-    QSoundEffect *bgMusic;
+
+    QLabel label;
 };
 #endif // MAINWINDOW_H

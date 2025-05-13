@@ -3,5 +3,6 @@
     <qresource prefix="/">
         <file>resourse/music/playgameBGmusic.wav</file>
         <file>resourse/music/mainsceneBgMusic.wav</file>
+        <file>resourse/music/step.WAV</file>
     </qresource>
 </RCC>

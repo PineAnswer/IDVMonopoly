@@ -8,6 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
+
     ui->setupUi(this);
     chooserole=new ChooseRole;
     QString background_image_path = ":/resourse/image/mainsceneBG.jpg";
@@ -15,12 +16,24 @@ MainWindow::MainWindow(QWidget *parent)
     if (!backgroundPixmap.isNull()) {
         this->setFixedSize(backgroundPixmap.size());
     }
+
     //设置背景音乐
     bgMusic = new QSoundEffect(this);
     bgMusic->setSource(QUrl::fromLocalFile(":/resourse/music/mainsceneBgMusic.wav"));
     bgMusic->setLoopCount(QSoundEffect::Infinite); // 无限循环
     bgMusic->setVolume(0.5f); // 音量范围 0.0-1.0
     bgMusic->play();
+    label.setText("点击任意位置进入游戏");
+    label.setStyleSheet(
+        "QLabel {"
+        "    color: white;"
+        "    font-size: 16px;"
+        "    font-weight: bold;"
+        "}"
+        );
+    label.setParent(this);
+    label.move(500,400);
+    label.show();
 
 }
 void MainWindow::paintEvent(QPaintEvent *event)

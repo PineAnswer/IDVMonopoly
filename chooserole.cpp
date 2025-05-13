@@ -10,7 +10,6 @@ ChooseRole::ChooseRole(QWidget *parent) : QWidget(parent) {
     if (!backgroundPixmap.isNull()) {
         this->setFixedSize(backgroundPixmap.size());
     }
-
     initializeUI();
     loadImages();
     statistic = new Statistics;

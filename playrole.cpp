@@ -5,5 +5,4 @@ PlayRole::PlayRole() {
         cards.emplace_back();
         cards[i].name=Card::None;
     }
-
 }

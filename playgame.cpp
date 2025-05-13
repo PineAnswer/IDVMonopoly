@@ -8,20 +8,20 @@
 #include <QSequentialAnimationGroup>
 #include <QTimer>
 #include <QEventLoop>
+#include <QMediaPlayer>
+#include <QFile>
+#include <QTransform>
 
 
 PlayGame::PlayGame(QWidget *parent,Statistics* sta0): QWidget(parent)
 {
-
     //设置界面基本格式
-    {
     this->setFixedSize(1200,800);
     QString background_image_path = ":/resourse/image/qipanbackground.png";
     QPixmap backgroundPixmap(background_image_path);
     backgroundPixmap = QPixmap(background_image_path);
-    }
-    //掷骰子按键相关
-    {
+
+    //掷骰子按键
     go.setParent(this);
     go.move(550,670);
     go.setFixedSize(100,120);
@@ -35,10 +35,8 @@ PlayGame::PlayGame(QWidget *parent,Statistics* sta0): QWidget(parent)
         "}"
         );
     go.show();
-    }
 
-    //计分板初始化
-    {
+    //计分板
     QString scoreShow1="玩家一破译进度：0";
     QString scoreShow2="玩家二破译进度：0";
     QString scoreShow3="玩家三破译进度：0";
@@ -54,26 +52,24 @@ PlayGame::PlayGame(QWidget *parent,Statistics* sta0): QWidget(parent)
     scoreBoardOfRole3.move(952,530);
     scoreBoardOfRole3.setStyleSheet("color: white; font-size: 24px;");
     scoreBoardOfRole3.setText(scoreShow3);
-    }
 
-    //能力栏初始化
-    {
+    //能力栏
     for(int i=0;i<3;i++){
         cardWidget[i].setParent(this);
         cardWidget[i].setFixedSize(135,135);
         cardWidget[i].setLayout(&cardBar[i]);
         cardBar[i].setParent(&cardWidget[i]);
-        cardBar[i].setContentsMargins(1, 1, 1, 1); // 网格内边距
-        cardBar[i].setSpacing(5); // 网格间距
+        cardBar[i].setContentsMargins(1, 1, 1, 1);
+        cardBar[i].setSpacing(5);
         for(int j=0;j<4;j++){
             cardButton[i][j].setFixedSize(65,65);
             cardButton[i][j].setParent(&cardWidget[i]);
             cardBar[i].addWidget(&cardButton[i][j],j/2,j%2);
             cardButton[i][j].setStyleSheet(
                 "QPushButton {"
-                "    border: none;"           // 移除边框
-                "    background-color: none;" // 透明背景
-                "    icon-size: 65px 65px;"  // 设置图标大小为按钮大小
+                "    border: none;"
+                "    background-color: none;"
+                "    icon-size: 65px 65px;"
                 "    padding: 5px;"
                 "}"
                 );
@@ -84,10 +80,8 @@ PlayGame::PlayGame(QWidget *parent,Statistics* sta0): QWidget(parent)
     cardWidget[0].setGeometry(1010, 170, 135, 135);
     cardWidget[1].setGeometry(1010, 390, 135, 135);
     cardWidget[2].setGeometry(1010, 590, 135, 135);
-    }
 
-    //提示板初始化
-    {
+    //提示板
     QString notice="请玩家一掷骰子！";
     noticeBoard.setParent(this);
     noticeBoard.setStyleSheet("color: white; font-size: 40px; font-family: 'Segoe UI', sans-serif; font-weight: bold;");
@@ -95,7 +89,6 @@ PlayGame::PlayGame(QWidget *parent,Statistics* sta0): QWidget(parent)
     noticeBoard.setAlignment(Qt::AlignCenter);
     noticeBoard.setFixedSize(1200, 40);
     noticeBoard.setText(notice);
-    }
 
     setupMap();
     loadAndShowCells();
@@ -103,7 +96,6 @@ PlayGame::PlayGame(QWidget *parent,Statistics* sta0): QWidget(parent)
     loadSkillImage();
 
     //人物状态初始化
-
     for(int j=0;j<3;j++){
             switch(sta->role[j].identity.role){
             case Identity::novelist:
@@ -133,6 +125,7 @@ PlayGame::PlayGame(QWidget *parent,Statistics* sta0): QWidget(parent)
         sta->role[j].walkLabel.setScaledContents(true);
         sta->role[j].walkLabel.setFixedSize(80,120);
     }
+    ChangeDirection(sta->role[0]);
 
     sta->role[0].Point=19;
     sta->role[0].playerlabel.move(m_gameCells[19].position);
@@ -152,22 +145,48 @@ PlayGame::PlayGame(QWidget *parent,Statistics* sta0): QWidget(parent)
     sta->role[2].playerlabel.setPixmap(sta->role[2].walkImage[0]);
     sta->role[2].playerlabel.show();
 
-
     //技能释放对象按钮
     for (int k = 0; k < 3; ++k) {
         targetButtons[k].setParent(this);
-        targetButtons[k].hide();  // 默认隐藏
+        targetButtons[k].hide();
         connect(&targetButtons[k], &QPushButton::clicked, this, [this, k]() {
             int targetPlayer = targetButtons[k].text().right(1).toInt() - 1;
             applySkillToTarget(targetPlayer, sta->currentSkillType);
         });
     }
+
     //设置背景音乐
     bgMusic = new QSoundEffect(this);
     bgMusic->setSource(QUrl::fromLocalFile(":/resourse/music/playgameBGmusic.wav"));
-    bgMusic->setLoopCount(QSoundEffect::Infinite); // 无限循环
-    bgMusic->setVolume(0.5f); // 音量范围 0.0-1.0
+    bgMusic->setLoopCount(QSoundEffect::Infinite);
+    bgMusic->setVolume(0.5f);
     bgMusic->play();
+
+    //掷骰子动画窗口
+    vedioWidget.setParent(this);
+    vedioWidget.hide();
+    vedioWidget.setFixedSize(1200,800);
+    vedioWidget.move(0,0);
+    mediaPlayer = new QMediaPlayer(this);
+
+    //步行音效设置
+    stepSound = new QSoundEffect(this);
+    stepSound->setSource(QUrl::fromLocalFile(":/resourse/music/step.WAV"));
+    stepSound->setVolume(0.5);
+
+    //是否需要播放动画的复选框
+    playDiceVideo.setText("播放掷骰子动画");
+    playDiceVideo.setStyleSheet(
+        "QCheckBox {"
+        "    color: white;"
+        "    font-size: 16px;"
+        "    font-weight: bold;"
+        "}"
+        );
+    playDiceVideo.setParent(this);
+    playDiceVideo.move(650,720);
+    playDiceVideo.setChecked(true);
+
 
     //链接槽函数
     connect(&go, &QPushButton::clicked, this, &PlayGame::on_go_clicked);
@@ -181,12 +200,10 @@ PlayGame::PlayGame(QWidget *parent,Statistics* sta0): QWidget(parent)
 void PlayGame::paintEvent(QPaintEvent *event) {
     Q_UNUSED(event);
     QPainter painter(this);
-    QString background_image_path = ":/resourse/image/qipanbackground.png"; // 替换为实际的背景图片路径
+    QString background_image_path = ":/resourse/image/qipanbackground.png";
     QPixmap backgroundPixmap(background_image_path);
-    if (!backgroundPixmap.isNull()) { // 检查图片是否加载成功
-        // 将背景图片缩放至窗口大小并绘制
-        painter.drawPixmap(0, 0, backgroundPixmap.scaled(this->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    }
+    painter.drawPixmap(0, 0, backgroundPixmap.scaled(this->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+
 }
 
 void PlayGame::useCards() {
@@ -249,11 +266,12 @@ void PlayGame::useCards() {
 
 void PlayGame::on_go_clicked(){
     go.setEnabled(false);
-    int steps = QRandomGenerator::global()->bounded(1, 5);     //范围：[1，4）
+    int steps = QRandomGenerator::global()->bounded(1, 5);//范围：[1，4）
     QString notice;
     switch(this->sta->turn){
     case Statistics::ATurn:
         sta->round++;
+
         //如果是第一圈
         if(sta->role[0].blocked){
             noticeBoard.setText("玩家一该回合被剥夺行动资格！");
@@ -264,6 +282,8 @@ void PlayGame::on_go_clicked(){
             go.setEnabled(true);
             return;
         }
+
+        if(playDiceVideo.isChecked())playDiceVedio(steps);
         if(!sta->role[0].isFinal){
             for(int j=0;j<4;j++){
                 cardButton[2][j].setEnabled(false);
@@ -278,7 +298,7 @@ void PlayGame::on_go_clicked(){
             if(sta->round%2==0)
                 getSkill(sta->role[0]);
             if(m_gameCells[sta->role[0].Point].property==CellProperty::Card)
-                getSkill(sta->role[0]);//获得技能卡
+                getSkill(sta->role[0]);
 
             sta->turn = Statistics::BTurn;
             updateGameStatus(0,"");
@@ -288,12 +308,20 @@ void PlayGame::on_go_clicked(){
             }
             return;
         }
+
         //如果是第二圈
             notice="玩家一掷出了"+QString::number(steps);
             noticeBoard.setText(notice);
+            wait(1000);
             this->forward2(steps,this->sta->role[0]);
+            if(sta->round%2==0)
+                getSkill(sta->role[0]);
             sta->turn = Statistics::BTurn;
-            updateGameStatus(sta->role[0].Point2==9?1:0,"玩家一");
+            updateGameStatus(sta->role[0].Point2==10?1:0,"玩家一");
+            for(int i=0;i<4;i++){
+                if(sta->role[0].cards[i].name!=Card::None)
+                    cardButton[0][i].setEnabled(true);
+            }
             return;
 
 
@@ -307,6 +335,7 @@ void PlayGame::on_go_clicked(){
             go.setEnabled(true);
             return;
         }
+        if(playDiceVideo.isChecked())playDiceVedio(steps);
         if(!sta->role[1].isFinal){
             for(int i=0;i<4;i++){
                 cardButton[0][i].setEnabled(false);
@@ -333,9 +362,16 @@ void PlayGame::on_go_clicked(){
         //如果是第二圈
         notice="玩家二掷出了"+QString::number(steps);
         noticeBoard.setText(notice);
+        wait(1000);
         this->forward2(steps,this->sta->role[1]);
+        if(sta->round%2==0)
+            getSkill(sta->role[1]);
         sta->turn = Statistics::CTurn;
-        updateGameStatus(sta->role[1].Point2==9?1:0,"玩家二");
+        updateGameStatus(sta->role[1].Point2==10?1:0,"玩家二");
+        for(int i=0;i<4;i++){
+            if(sta->role[1].cards[i].name!=Card::None)
+                cardButton[1][i].setEnabled(true);
+        }
         return;
 
     case Statistics::CTurn:
@@ -347,11 +383,11 @@ void PlayGame::on_go_clicked(){
             go.setEnabled(true);
             return;
         }
+        if(playDiceVideo.isChecked())playDiceVedio(steps);
         if(!sta->role[2].isFinal){
             for(int i=0;i<4;i++){
                 cardButton[1][i].setEnabled(false);
             }
-
             notice="玩家三掷出了"+QString::number(steps);
             noticeBoard.setText(notice);
             wait(1000);
@@ -363,19 +399,26 @@ void PlayGame::on_go_clicked(){
                 getSkill(sta->role[2]);
             sta->turn = Statistics::ATurn;
             updateGameStatus(0,"");
-
             for(int i=0;i<4;i++){
                 if(sta->role[2].cards[i].name!=Card::None)
                     cardButton[2][i].setEnabled(true);
             }
             return;
         }
+
         //如果是第二圈
         notice="玩家三掷出了"+QString::number(steps);
         noticeBoard.setText(notice);
+        wait(1000);
         this->forward2(steps,this->sta->role[2]);
+        if(sta->round%2==0)
+            getSkill(sta->role[2]);
         sta->turn = Statistics::ATurn;
-        updateGameStatus(sta->role[0].Point2==9?1:0,"玩家三");
+        updateGameStatus(sta->role[2].Point2==10?1:0,"玩家三");
+        for(int i=0;i<4;i++){
+            if(sta->role[2].cards[i].name!=Card::None)
+                cardButton[2][i].setEnabled(true);
+        }
         return;
     }
 }
@@ -386,92 +429,159 @@ void PlayGame::updateFrame(PlayRole &role){
     role.walkLabel.setPixmap(role.walkImage[currentFrame]);
 }
 
+//初始阶段的前进
 void PlayGame::forward(int steps, PlayRole &role){
-    role.playerlabel.hide();
+    //行走动画设置
     role.walkLabel.move(m_gameCells[role.Point].position);
+    role.playerlabel.hide();
     role.walkLabel.show();
-
     QTimer *timer=new QTimer(this);
     connect(timer, &QTimer::timeout, this, [this, &role]() {
         this->updateFrame(role);
     });
-    timer->start(16);
+    timer->start(30);
 
+    //平移动画
     QSequentialAnimationGroup *group = new QSequentialAnimationGroup(this);
     for(int i=0;i<steps;i++){
         QPropertyAnimation* anim = new QPropertyAnimation(&role.walkLabel, "pos");
-        anim->setDuration(500);
+        anim->setDuration(300);
         anim->setStartValue(m_gameCells[role.Point].position);
         role.Point = (role.Point + 1) % 21;
         anim->setEndValue(m_gameCells[role.Point].position);
         anim->setEasingCurve(QEasingCurve::OutQuad);
         group->addAnimation(anim);
+
+        //每走一步播放音效
+        connect(anim, &QAbstractAnimation::stateChanged, this, [this](QAbstractAnimation::State newState, QAbstractAnimation::State oldState) {
+            if (newState == QAbstractAnimation::Running && oldState == QAbstractAnimation::Stopped) {
+                stepSound->play();
+            }
+        });
+
+        //特殊节点变化方向
+        if(role.Point==4||role.Point==14)ChangeDirection(role);
+
+        //检测进入最终阶段逻辑
         if(m_gameCells[role.Point].property==CellProperty::Start&&role.score>=100)   {
+            switch(role.identity.role){
+            case Identity::novelist:
+                for(int i=1;i<=5;i++){
+                    role.walkImage[i-1]=(QPixmap(QString(":/NovelistWalk/resourse/NovelistWalk/NovelistWalk"+QString::number(i)+".png")));
+                }
+                break;
+            case Identity::explorer:
+                for(int i=1;i<=5;i++){
+                    role.walkImage[i-1]=(QPixmap(QString(":/ExplorerWalk/resourse/ExplorerWalk/ExplorerWalk"+QString::number(i)+".png")));
+                }
+                break;
+            case Identity::entomologist:
+                for(int i=1;i<=5;i++){
+                    role.walkImage[i-1]=(QPixmap(QString(":/KunchongWalk/resourse/KunchongWalk/KunchongWalk"+QString::number(i)+".png")));
+                }
+                break;
+            case Identity::journalist:
+                for(int i=1;i<=5;i++){
+                    role.walkImage[i-1]=(QPixmap(QString(":/JournalistWalk/resourse/JournalistWalk/JournalistWalk"+QString::number(i)+".png")));
+                }
+                break;
+            }
             role.isFinal=1;
+            role.playerlabel.setPixmap(role.walkImage[0]);
+            role.playerlabel.move(finalCells[0].position);
+            role.walkLabel.move(finalCells[0].position);
+            role.Point2=0;
             break;
         }
     }
     group->start(QAbstractAnimation::DeleteWhenStopped);
+
+    //动画结束后
     connect(group, &QSequentialAnimationGroup::finished, this, [this, &role, timer]() {
             timer->stop();
             timer->deleteLater();
-
             role.walkLabel.hide();
-            role.playerlabel.move(m_gameCells[role.Point].position);
+            if(!role.isFinal)role.playerlabel.move(m_gameCells[role.Point].position);
             role.playerlabel.show();
     });
-    if(m_gameCells[role.Point].property==CellProperty::Start&&role.score>=100){
-        role.playerlabel.move(finalCells[0].position);
-        role.isFinal=1;
-    }
 }
 
+//最终阶段的前进
 void PlayGame::forward2(int steps, PlayRole &role){
+    //行走动画设置
+    role.walkLabel.move(finalCells[role.Point2].position);
+    role.playerlabel.hide();
+    role.walkLabel.show();
+    QTimer *timer=new QTimer(this);
+    connect(timer, &QTimer::timeout, this, [this, &role]() {
+        this->updateFrame(role);
+    });
+    timer->start(30);
+
+    //平移动画
     QSequentialAnimationGroup *group = new QSequentialAnimationGroup(this);
     for(int i=0;i<steps;i++){
-        QPropertyAnimation* anim = new QPropertyAnimation(&role.playerlabel, "pos");
+        QPropertyAnimation* anim = new QPropertyAnimation(&role.walkLabel, "pos");
         anim->setDuration(300);
         anim->setStartValue(finalCells[role.Point2++].position);
         anim->setEndValue(finalCells[role.Point2].position);
         anim->setEasingCurve(QEasingCurve::OutQuad);
         group->addAnimation(anim);
+
+        //每走一步播放音效
+        connect(anim, &QAbstractAnimation::stateChanged, this, [this](QAbstractAnimation::State newState, QAbstractAnimation::State oldState) {
+            if (newState == QAbstractAnimation::Running && oldState == QAbstractAnimation::Stopped) {
+                stepSound->play();
+            }
+        });
+
+        if(role.Point2==10){
+            break;
+        }
     }
-
-
     group->start(QAbstractAnimation::DeleteWhenStopped);
+    //动画结束后
+    connect(group, &QSequentialAnimationGroup::finished, this, [this, &role, timer]() {
+        timer->stop();
+        timer->deleteLater();
+        role.walkLabel.hide();
+        role.playerlabel.move(finalCells[role.Point2].position);
+        role.playerlabel.show();
+    });
 }
 
+//更新游戏状态
 void PlayGame::updateGameStatus(bool end, QString winner) {
     go.setEnabled(true);
     QString notice;
     //已经有人到达终点
     if(end){
         notice="游戏结束！"+winner+"获胜！";
+        noticeBoard.setText(notice);
         return;
     }
-    //否则
-    //1
+    //否则 1更新提示版
     switch(this->sta->turn) {
     case Statistics::ATurn: notice = "玩家三可使用技能！玩家一可掷骰子！"; break;
     case Statistics::BTurn: notice = "玩家一可使用技能！玩家二可掷骰子！"; break;
     case Statistics::CTurn: notice = "玩家二可使用技能！玩家三可掷骰子！"; break;
     }
     noticeBoard.setText(notice);
-    //2
+    //2更新破译进度
     QString scoreShow1 = "玩家一破译进度：" + QString::number(sta->role[0].score);
     scoreBoardOfRole1.setText(scoreShow1);
     scoreBoardOfRole1.adjustSize();
-    QString scoreShow2 = "玩家二目前进度：" + QString::number(sta->role[1].score);
+    QString scoreShow2 = "玩家二破译进度：" + QString::number(sta->role[1].score);
     scoreBoardOfRole2.setText(scoreShow2);
     scoreBoardOfRole2.adjustSize();
-    QString scoreShow3 = "玩家三目前进度：" + QString::number(sta->role[2].score);
+    QString scoreShow3 = "玩家三破译进度：" + QString::number(sta->role[2].score);
     scoreBoardOfRole3.setText(scoreShow3);
     scoreBoardOfRole3.adjustSize();
-
-    //加载技能图片
+    //重新加载技能图片
     this->loadSkillImage();
 }
 
+//获得技能
 void PlayGame::getSkill(PlayRole &role){
     bool isFull=true;
     int randomCard=QRandomGenerator::global()->bounded(1, 6);
@@ -483,11 +593,11 @@ void PlayGame::getSkill(PlayRole &role){
         }
     }
     if(isFull)role.cards[3]=Card::cardName(randomCard);
-    noticeBoard.setText("玩家"+QString::number(&role-sta->role+1)+"获得了一张能力卡！");
+    noticeBoard.setText("玩家"+QString::number(&role-sta->role+1)+"获得了能力卡！");
     wait(1000);
-
 }
 
+//加载技能图片
 void PlayGame::loadSkillImage(){
     for(int i=0;i<3;i++){
         for(int j=0;j<4;j++){
@@ -518,7 +628,7 @@ void PlayGame::loadSkillImage(){
 void PlayGame::showTargetSelection(Card::cardName skillType) {
     sta->currentSkillType = skillType;
     for (int k = 0; k < 3; ++k) {
-        if (k != sta->currentSkillUser) {  // 排除自己
+        if (k != sta->currentSkillUser) {
             targetButtons[k].setText("选择玩家" + QString::number(k+1));
             targetButtons[k].setGeometry(400, 300 + k*50, 200, 40);
             targetButtons[k].show();
@@ -565,11 +675,29 @@ void PlayGame::applySkillToTarget(int targetPlayer, Card::cardName skillType) {
         break;
 
     case Card::PosExchange:
-        std::swap(sta->role[sta->currentSkillUser].Point, sta->role[targetPlayer].Point);
-        sta->role[sta->currentSkillUser].playerlabel.move(m_gameCells[sta->role[sta->currentSkillUser].Point].position);
-        sta->role[targetPlayer].playerlabel.move(m_gameCells[sta->role[targetPlayer].Point].position);
-        noticeBoard.setText("玩家" + QString::number(sta->currentSkillUser+1) +
-                            "与玩家" + QString::number(targetPlayer+1) + "交换了位置！");
+        if(!sta->role[sta->currentSkillUser].isFinal&&!sta->role[targetPlayer].isFinal)
+        {
+            std::swap(sta->role[sta->currentSkillUser].Point, sta->role[targetPlayer].Point);
+            sta->role[sta->currentSkillUser].playerlabel.move(m_gameCells[sta->role[sta->currentSkillUser].Point].position);
+            sta->role[targetPlayer].playerlabel.move(m_gameCells[sta->role[targetPlayer].Point].position);
+            noticeBoard.setText("玩家" + QString::number(sta->currentSkillUser+1) +
+                                "与玩家" + QString::number(targetPlayer+1) + "交换了位置！");
+
+        }
+        else if(sta->role[sta->currentSkillUser].isFinal&&sta->role[targetPlayer].isFinal)
+        {
+            std::swap(sta->role[sta->currentSkillUser].Point2, sta->role[targetPlayer].Point2);
+            sta->role[sta->currentSkillUser].playerlabel.move(finalCells[sta->role[sta->currentSkillUser].Point2].position);
+            sta->role[targetPlayer].playerlabel.move(finalCells[sta->role[targetPlayer].Point2].position);
+            sta->role[sta->currentSkillUser].walkLabel.move(finalCells[sta->role[sta->currentSkillUser].Point2].position);
+            sta->role[targetPlayer].walkLabel.move(finalCells[sta->role[targetPlayer].Point2].position);
+            noticeBoard.setText("玩家" + QString::number(sta->currentSkillUser+1) +
+                                "与玩家" + QString::number(targetPlayer+1) + "交换了位置！");
+        }
+        else{
+            noticeBoard.setText("处于不同阶段的玩家不可交换位置！");
+        }
+
         break;
 
     case Card::None:
@@ -578,7 +706,6 @@ void PlayGame::applySkillToTarget(int targetPlayer, Card::cardName skillType) {
         break;
     }
     wait(1000);
-    // 恢复游戏状态
     updateGameStatus(false, "");
 }
 
@@ -588,7 +715,6 @@ void PlayGame::triggerCellEffect(int cellIndex, int playerIndex) {
     PlayRole& player = sta->role[playerIndex];
 
     switch(targetCell.property) {
-
     case CellProperty::Normal:
         player.score += targetCell.Num;
         break;
@@ -598,7 +724,7 @@ void PlayGame::triggerCellEffect(int cellIndex, int playerIndex) {
         break;
 
     case CellProperty::Start:
-        if (player.score >= 10 && !player.isFinal) {
+        if (player.score >= 100 && !player.isFinal) {
             player.isFinal = true;
             player.playerlabel.move(finalCells[0].position);
             noticeBoard.setText("玩家" + QString::number(playerIndex+1) + "进入最终阶段！");
@@ -616,7 +742,7 @@ void PlayGame::setupMap(){
     m_gameCells.emplace_back(1, QPoint(340, 123), ":/resourse/image/kuangshi.png", CellProperty::Normal,6);
     m_gameCells.emplace_back(2, QPoint(196, 157), ":/resourse/image/kuangshi.png", CellProperty::Normal,10);
     m_gameCells.emplace_back(3, QPoint(98, 251), ":/resourse/image/kuangshi.png", CellProperty::Normal,8);
-    m_gameCells.emplace_back(4, QPoint(172, 353), ":/resourse/image/CardCell.png", CellProperty::Card,0);
+    m_gameCells.emplace_back(4, QPoint(45, 353), ":/resourse/image/CardCell.png", CellProperty::Card,0);
     m_gameCells.emplace_back(5, QPoint(105, 459), ":/resourse/image/kuangshi.png", CellProperty::Normal,4);
     m_gameCells.emplace_back(6, QPoint(150, 562), ":/resourse/image/startpoint.png", CellProperty::Start,0);
     m_gameCells.emplace_back(7, QPoint(253, 617), ":/resourse/image/kuangshi.png", CellProperty::Normal,10);
@@ -630,21 +756,21 @@ void PlayGame::setupMap(){
     m_gameCells.emplace_back(15, QPoint(890, 475), ":/resourse/image/kuangshi.png", CellProperty::Normal,8);
     m_gameCells.emplace_back(16, QPoint(880, 370), ":/resourse/image/CardCell.png", CellProperty::Card,0);
     m_gameCells.emplace_back(17, QPoint(944, 265), ":/resourse/image/kuangshi.png", CellProperty::Normal,10);
-    m_gameCells.emplace_back(18, QPoint(900, 144), ":/resourse/image/kuangshi.png", CellProperty::Normal,4);
+    m_gameCells.emplace_back(18, QPoint(850, 200), ":/resourse/image/kuangshi.png", CellProperty::Normal,4);
     m_gameCells.emplace_back(19, QPoint(732, 158), ":/resourse/image/kuangshi.png", CellProperty::Normal,12);
     m_gameCells.emplace_back(20, QPoint(617, 123), ":/resourse/image/startpoint.png", CellProperty::Start,0);
     m_gameCells.emplace_back(21, QPoint(478, 145), ":/resourse/image/kuangshi.png", CellProperty::Normal,12);
 
-    finalCells.emplace_back(1,QPoint(364,488),":/role/resourse/image/finalCell.png",CellProperty::Final,0);
-    finalCells.emplace_back(2,QPoint(285,411),":/role/resourse/image/finalCell.png",CellProperty::Final,0);
-    finalCells.emplace_back(3,QPoint(336,328),":/role/resourse/image/finalCell.png",CellProperty::Final,0);
-    finalCells.emplace_back(4,QPoint(401,262),":/role/resourse/image/finalCell.png",CellProperty::Final,0);
-    finalCells.emplace_back(5,QPoint(520,240),":/role/resourse/image/finalCell.png",CellProperty::Final,0);
-    finalCells.emplace_back(6,QPoint(606,263),":/role/resourse/image/finalCell.png",CellProperty::Final,0);
-    finalCells.emplace_back(7,QPoint(693,315),":/role/resourse/image/finalCell.png",CellProperty::Final,0);
-    finalCells.emplace_back(8,QPoint(782,391),":/role/resourse/image/finalCell.png",CellProperty::Final,0);
-    finalCells.emplace_back(9,QPoint(697,472),":/role/resourse/image/finalCell.png",CellProperty::Final,0);
-    finalCells.emplace_back(10,QPoint(566,498),":/role/resourse/image/door.png",CellProperty::Final,0);
+    finalCells.emplace_back(1,QPoint(190,310),":/role/resourse/image/finalCell.png",CellProperty::Final,0);
+    finalCells.emplace_back(2,QPoint(230,400),":/role/resourse/image/finalCell.png",CellProperty::Final,0);
+    finalCells.emplace_back(3,QPoint(317,472),":/role/resourse/image/finalCell.png",CellProperty::Final,0);
+    finalCells.emplace_back(4,QPoint(381,404),":/role/resourse/image/finalCell.png",CellProperty::Final,0);
+    finalCells.emplace_back(5,QPoint(456,321),":/role/resourse/image/finalCell.png",CellProperty::Final,0);
+    finalCells.emplace_back(6,QPoint(545,258),":/role/resourse/image/finalCell.png",CellProperty::Final,0);
+    finalCells.emplace_back(7,QPoint(628,322),":/role/resourse/image/finalCell.png",CellProperty::Final,0);
+    finalCells.emplace_back(8,QPoint(703,390),":/role/resourse/image/finalCell.png",CellProperty::Final,0);
+    finalCells.emplace_back(9,QPoint(765,476),":/role/resourse/image/finalCell.png",CellProperty::Final,0);
+    finalCells.emplace_back(10,QPoint(663,534),":/role/resourse/image/door.png",CellProperty::Final,0);
 }
 
 void PlayGame::loadAndShowCells(){
@@ -661,7 +787,7 @@ void PlayGame::loadAndShowCells(){
         if (cell.property==CellProperty::Normal) {
             QLabel *cellLabel2 = new QLabel(this);
             cellLabel2->setText(QString::number(cell.Num));
-            cellLabel2->move(cell.position.x()+15,cell.position.y()+10);
+            cellLabel2->move(cell.position.x()+20,cell.position.y()+30);
             QFont font("Arial", 30, QFont::Bold, false);  // 字体名称、大小、粗细、斜体
             cellLabel2->setFont(font);
             cellLabel2->show();
@@ -671,7 +797,7 @@ void PlayGame::loadAndShowCells(){
         QPixmap pixmap(cell.imagePath);
         if (!pixmap.isNull()) {
             QLabel *cellLabel = new QLabel(this);
-            cellLabel->setPixmap(pixmap.scaled(80, 80, Qt::KeepAspectRatio));
+            cellLabel->setPixmap(pixmap.scaled(60, 60, Qt::KeepAspectRatio));
             cellLabel->move(cell.position);
             cellLabel->show();
         }
@@ -684,7 +810,30 @@ void PlayGame::wait(int time){
     loop.exec();
 }
 
+void PlayGame::playDiceVedio(int steps){
+    vedioWidget.show();
+    mediaPlayer->setSource("qrc:/resourse/vedio/dice"+QString::number(steps)+".mp4");
+    mediaPlayer->setVideoOutput(&vedioWidget);
+    mediaPlayer->setAudioOutput(&audioOutput);
+    mediaPlayer->play();
+    QEventLoop loop;
+    connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, &loop, [&loop, this](QMediaPlayer::MediaStatus status) {
+        if (status == QMediaPlayer::EndOfMedia) {
+            vedioWidget.hide();
+            loop.quit();
+        }
+    });
+    loop.exec();
+}
 
+void PlayGame::ChangeDirection(PlayRole &role){
+    QTransform transform;
+    transform.scale(-1,1);
+    for(int i=0;i<5;i++){
+        role.walkImage[i]=role.walkImage[i].transformed(transform, Qt::SmoothTransformation);
+    }
+    role.playerlabel.setPixmap(role.walkImage[0]);
+}
 
 PlayGame::~PlayGame(){
 

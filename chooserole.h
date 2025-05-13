@@ -20,8 +20,6 @@ public:
     Statistics* statistic;
     PlayGame* playgame;
     QSoundEffect *bgMusic;
-protected:
-    //void paintEvent(QPaintEvent *event) override;
 
 private slots:
     void onPlayerButtonClicked(int playerIndex);//点击角色的反应
@@ -39,8 +37,6 @@ private:
     QVBoxLayout *mainLayout;
     QGridLayout *topLayout;
     QHBoxLayout *characterLayout;
-
-
 
     int currentSelectedPlayer = -1;
     const QString highlightStyle = "border: 3px solid red; border-radius: 5px;";

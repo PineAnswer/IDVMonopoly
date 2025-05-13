@@ -10,11 +10,12 @@
 #include "statistics.h"
 #include <QGridLayout>
 #include <QSoundEffect>
-
-
+#include <QMediaPlayer>
+#include <QVideoWidget>
+#include <QAudioOutput>
+#include <QCheckBox>
 
 namespace Ui {class PlayGame;}
-
 
 class PlayGame : public QWidget
 {
@@ -24,10 +25,10 @@ public:
     PlayGame(QWidget *parent = nullptr,Statistics* sta0 = nullptr); // 构造函数
     ~PlayGame();
 
+private:
     std::vector<GameCell> m_gameCells;
     std::vector<GameCell> finalCells;
 
-    //加载地图界面
     void loadAndShowCells();
     void paintEvent(QPaintEvent *event);
     void setupMap();
@@ -44,7 +45,12 @@ public:
     QGridLayout cardBar[3];
     QPushButton cardButton[3][4];
 
+    QCheckBox playDiceVideo;
+
     QSoundEffect *bgMusic;
+    QSoundEffect *stepSound;
+    QVideoWidget vedioWidget;
+    QAudioOutput audioOutput;
 
     void forward(int steps, PlayRole &role);
     void forward2(int steps, PlayRole &role);
@@ -59,6 +65,9 @@ public:
     void on_go_clicked();
     void wait(int time);
     void updateFrame(PlayRole &role);
+    void playDiceVedio(int steps);
+    void ChangeDirection(PlayRole &role);
+    QMediaPlayer *mediaPlayer;
 };
 
 
